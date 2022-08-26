@@ -27,7 +27,6 @@ const Form = ({ data }: FormProps) => {
             .map(({ id, value  }) => ({ checkId: id, result: value }))
 
         submitCheckResults(questionResults).then(() => {
-            console.log(questionResults)
             router.push("/success")
         }).catch((error) => {
             setError(JSON.stringify(error))
