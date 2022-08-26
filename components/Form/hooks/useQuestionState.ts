@@ -34,8 +34,8 @@ const useQuestionState: UseQuestionStateHook = (data) => {
         questionStateReducer,
         {
             questionState: data
-                .sort((a, b) => a.priority - b.priority)
-                .map<ActiveQuestionSchema>((question) => ({
+                .sort((a, b) => a.priority - b.priority) // Pre-sorting on priority here
+                .map<ActiveQuestionSchema>((question) => ({ // Mapping QuestionSchema into ActiveQuestionSchema
                     ...question,
                     enabled: false,
                     keyboardSelected: false
