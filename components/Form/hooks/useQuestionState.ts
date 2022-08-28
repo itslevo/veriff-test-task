@@ -1,8 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useRef, useReducer, } from "react"
+import { useEffect, useReducer, } from "react"
 
 import {
-    KeyboardActions,
+    KeyboardInputs,
     Actions,
     QuestionSchema,
     ActiveQuestionSchema
@@ -12,7 +12,7 @@ import questionStateReducer,
         initialiser,
         Reducer,
         ActiveState
-    } from "../questionStateReducer"
+    } from "../reducer/questionStateReducer"
 import useEventListeners from "./useEventListeners"
 
 
@@ -38,7 +38,8 @@ const useQuestionState: UseQuestionStateHook = (data) => {
                 .map<ActiveQuestionSchema>((question) => ({ // Mapping QuestionSchema into ActiveQuestionSchema
                     ...question,
                     enabled: false,
-                    keyboardSelected: false
+                    keyboardSelected: false,
+                    value: null
                 })),
             isSubmittable: false,
             selectedQuestionIndex: 0
@@ -47,25 +48,25 @@ const useQuestionState: UseQuestionStateHook = (data) => {
     )
     const {
         timestamp,
-        currentAction,
+        currentInput,
         keyboardNavigationIsActive
     } = useEventListeners()
 
     useEffect(() => {
-        switch(currentAction) {
-            case KeyboardActions.AnswerNo: {
+        switch(currentInput) {
+            case KeyboardInputs.AnswerNo: {
                 const { id } = questionState[selectedQuestionIndex]
                 nextQuestion(id)(false)
                 return
             }
-            case KeyboardActions.AnswerYes: {
+            case KeyboardInputs.AnswerYes: {
                 const { id } = questionState[selectedQuestionIndex]
                 nextQuestion(id)(true)
                 return
             }
-            case KeyboardActions.NextQuestion:
-            case KeyboardActions.PreviousQuestion: {
-                dispatch({ type: Actions.QUESTION_SELECTED_KEYBOARD, selectionType: currentAction })
+            case KeyboardInputs.NextQuestion:
+            case KeyboardInputs.PreviousQuestion: {
+                dispatch({ type: Actions.QUESTION_SELECTED_KEYBOARD, selectionType: currentInput })
                 return
             }
             default:
@@ -78,10 +79,6 @@ const useQuestionState: UseQuestionStateHook = (data) => {
             dispatch({ type: Actions.QUESTION_DESELECTED_KEYBOARD })
         }
     }, [ keyboardNavigationIsActive ])
-
-    useEffect(() => {
-
-    }, [ questionState ])
 
     const nextQuestion = (id: string) => (value: any) => {
         dispatch({ id, value, type: Actions.ANSWER_GIVEN })

@@ -1,5 +1,5 @@
-import { KeyboardActions, Actions } from "./types"
-import { ActiveQuestionSchema } from "./types"
+import { KeyboardInputs, Actions } from "../types"
+import { ActiveQuestionSchema } from "../types"
 
 export type ActiveState = {
     questionState: ActiveQuestionSchema[],
@@ -8,26 +8,32 @@ export type ActiveState = {
 }
 
 type AnswerGivenAction = { id: string, value: boolean, type: Actions }
-type QuestionSelectedKeyboardAction = { selectionType: KeyboardActions, type: Actions }
+type QuestionSelectedKeyboardAction = { selectionType: KeyboardInputs, type: Actions }
 type QuestionDeselectedKeyboardAction = { type: Actions }
-type AllActions = AnswerGivenAction | QuestionSelectedKeyboardAction | QuestionDeselectedKeyboardAction
+export type ActionsUnion = AnswerGivenAction | QuestionSelectedKeyboardAction | QuestionDeselectedKeyboardAction
 
-export type Reducer = (state: ActiveState, action: AllActions) => ActiveState
+export type Reducer = (state: ActiveState, action: ActionsUnion) => ActiveState
 
 const answerGivenActionTypeguard =
-    (action: AllActions): action is AnswerGivenAction => action.type === Actions.ANSWER_GIVEN
+    (action: ActionsUnion): action is AnswerGivenAction => action.type === Actions.ANSWER_GIVEN
 
 const questionSelectedKeyboardActionTypeguard =
-    (action: AllActions): action is QuestionSelectedKeyboardAction => action.type === Actions.QUESTION_SELECTED_KEYBOARD
+    (action: ActionsUnion): action is QuestionSelectedKeyboardAction => action.type === Actions.QUESTION_SELECTED_KEYBOARD
 
 const questionDeselectedKeyboardActionTypeguard =
-    (action: AllActions): action is QuestionDeselectedKeyboardAction => action.type === Actions.QUESTION_DESELECTED_KEYBOARD
+    (action: ActionsUnion): action is QuestionDeselectedKeyboardAction => action.type === Actions.QUESTION_DESELECTED_KEYBOARD
 
-const initialiser = ({questionState, isSubmittable, selectedQuestionIndex}: ActiveState): ActiveState => {
+const initialiser = (state: ActiveState): ActiveState => {
+    const { questionState } = state
     // first question is always enabled
     const [firstQuestion, ...rest] = questionState
 
+    if (questionState.length === 0) {
+        return state
+    }
+
     return {
+        ...state,
         questionState: [
             {
                 ...firstQuestion,
@@ -35,8 +41,6 @@ const initialiser = ({questionState, isSubmittable, selectedQuestionIndex}: Acti
             },
             ...rest
         ],
-        selectedQuestionIndex,
-        isSubmittable
     }
 }
 
@@ -50,6 +54,11 @@ const questionStateReducer: Reducer = (state, action) => {
         const { id, value } = action
 
         const answeredQuestionIndex = questionState.findIndex((question) => id === question.id)
+
+        if (answeredQuestionIndex === -1) {
+            return state
+        }
+
         const newQuestionState = questionState
             .reduce<ActiveQuestionSchema[]>((acc, question, index) => {
                 if (index === answeredQuestionIndex) {
@@ -61,15 +70,15 @@ const questionStateReducer: Reducer = (state, action) => {
                         }
                     ]
                 }
-                
-                const previous: ActiveQuestionSchema = acc[index - 1]
 
                 if (index > answeredQuestionIndex) {
+                    const previous: ActiveQuestionSchema = acc[index - 1]
+
                     return [
                         ...acc,
                         {
                             ...question,
-                            enabled: previous.value && previous.enabled
+                            enabled: Boolean(previous.value && previous.enabled)
                         }
                     ]
                 }
@@ -94,14 +103,17 @@ const questionStateReducer: Reducer = (state, action) => {
         const enabledQuestions = questionState.filter((question) => question.enabled)
 
         let nextSelectedQuestionIndex = selectedQuestionIndex
-        if (selectionType === KeyboardActions.NextQuestion) {
+        if (selectionType === KeyboardInputs.NextQuestion) {
+            // If we're advancing, ensure the index does not exceed the maximum possible in the questions array,
+            // but is larger than 0
             nextSelectedQuestionIndex = Math.max(
                 Math.min(selectedQuestionIndex + 1, enabledQuestions.length - 1),
                 0
             )
         }
 
-        if (selectionType === KeyboardActions.PreviousQuestion) {
+        if (selectionType === KeyboardInputs.PreviousQuestion) {
+            // If we're going back, ensure the index is not smaller than 0
             nextSelectedQuestionIndex = Math.max(selectedQuestionIndex - 1, 0)
         }
 

@@ -1,4 +1,5 @@
 import styled from "styled-components"
+import palette from "styles/palette"
 
 const FormStyled = styled.div`
     width: 60%;
@@ -17,7 +18,7 @@ const ErrorMessage = styled.div`
     text-align: left;
     font-size: 1rem;
     color: white;
-    background: #f0544f;
+    background: ${palette.error};
 `
 
 export {

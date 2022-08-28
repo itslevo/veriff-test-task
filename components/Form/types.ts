@@ -5,7 +5,7 @@ export enum Actions {
     QUESTION_DESELECTED_KEYBOARD
 }
 
-export enum KeyboardActions {
+export enum KeyboardInputs {
     NextQuestion = "ArrowDown",
     PreviousQuestion = "ArrowUp",
     AnswerYes = "1",
@@ -21,5 +21,5 @@ export type QuestionSchema = {
 export type ActiveQuestionSchema = Omit<QuestionSchema, "priority"> & {
     keyboardSelected: boolean;
     enabled: boolean;
-    value?: any;
+    value: boolean | null;
 }

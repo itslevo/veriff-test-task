@@ -1,26 +1,26 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect, useCallback} from "react"
-import { KeyboardActions } from "../types"
+import { KeyboardInputs } from "../types"
 
 type EventListenerHookProps = (
     ) => {
         timestamp: number,
-        currentAction: KeyboardActions | null,
+        currentInput: KeyboardInputs | null,
         keyboardNavigationIsActive: boolean
     }
 
 // This basically virtualises keyboard inputs, and them signals them to the main hook
 // The timestamp works to de-duplicate similar entries
 const useEventListeners: EventListenerHookProps = () => {
-    const [currentAction, setCurrentAction] = useState<KeyboardActions | null>(null)
+    const [currentInput, setCurrentInput] = useState<KeyboardInputs | null>(null)
     const [timestamp, setTimestamp] = useState<number>(Date.now())
     const [keyboardNavigationIsActive, setkeyboardNavigationIsActive] = useState<boolean>(false)
 
     const keyEventListenerCallback = useCallback<(event: KeyboardEvent) => void>(({ key }) => {
         setkeyboardNavigationIsActive(true)
 
-        if (Object.values(KeyboardActions).includes(key as KeyboardActions)) {
-            setCurrentAction(key as KeyboardActions)
+        if (Object.values(KeyboardInputs).includes(key as KeyboardInputs)) {
+            setCurrentInput(key as KeyboardInputs)
             setTimestamp(Date.now())
         }
     }, [])
@@ -41,7 +41,7 @@ const useEventListeners: EventListenerHookProps = () => {
 
     return {
         timestamp,
-        currentAction,
+        currentInput,
         keyboardNavigationIsActive
     }
 }
